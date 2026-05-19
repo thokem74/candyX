@@ -2,7 +2,8 @@ extends Control
 
 const Levels = preload("res://scripts/level_data.gd")
 const BOARD_SCENE := preload("res://scenes/Board.tscn")
-const BACKGROUND_TEXTURE_PATH := "res://assets/sprites/backgrounds/melle_candy_match3_background_blur.png"
+const BACKGROUND_TEXTURE: Texture2D = preload("res://assets/sprites/backgrounds/melle_candy_match3_background_blur.png")
+const MUSIC_PATH := "res://assets/audio/music/zane_little_flowerbed_fields.ogg"
 
 var _levels: Array[Dictionary] = Levels.levels()
 var _level_index := 0
@@ -16,14 +17,16 @@ var _goal_label: Label
 var _message_label: Label
 var _restart_button: Button
 var _next_button: Button
+var _music_player: AudioStreamPlayer
 
 func _ready() -> void:
 	_build_ui()
+	_start_music()
 	_start_level(0)
 
 func _build_ui() -> void:
 	var background := TextureRect.new()
-	background.texture = _load_texture(BACKGROUND_TEXTURE_PATH)
+	background.texture = BACKGROUND_TEXTURE
 	background.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	background.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	background.modulate = Color(0.72, 0.78, 0.9, 1.0)
@@ -168,8 +171,13 @@ func _on_level_finished(success: bool) -> void:
 	_message_label.scale = Vector2.ONE * 0.92
 	tween.tween_property(_message_label, "scale", Vector2.ONE, 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
-func _load_texture(path: String) -> Texture2D:
-	var image := Image.new()
-	if image.load(path) != OK:
-		return null
-	return ImageTexture.create_from_image(image)
+func _start_music() -> void:
+	_music_player = AudioStreamPlayer.new()
+	_music_player.volume_db = -18.0
+	add_child(_music_player)
+	var stream := AudioStreamOggVorbis.load_from_file(MUSIC_PATH)
+	if stream == null:
+		return
+	stream.loop = true
+	_music_player.stream = stream
+	_music_player.play()

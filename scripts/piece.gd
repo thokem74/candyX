@@ -2,9 +2,7 @@ extends Control
 class_name Piece
 
 const Types = preload("res://scripts/game_types.gd")
-const CANDY_ATLAS_PATH := "res://assets/sprites/candies/melle_candy_match3_assets_candy.png"
-
-static var _candy_atlas: Texture2D
+const CANDY_ATLAS: Texture2D = preload("res://assets/sprites/candies/melle_candy_match3_assets_candy.png")
 
 var color_id := 0
 var special_type: int = Types.SpecialType.NONE
@@ -162,12 +160,11 @@ func _draw_color_bomb(center: Vector2, radius: float) -> void:
 	draw_circle(center, radius * 0.2, Color.WHITE)
 
 func _draw_atlas_piece() -> bool:
-	var candy_atlas := _get_candy_atlas()
-	if candy_atlas == null:
+	if CANDY_ATLAS == null:
 		return false
 	var source_rect := _atlas_rect_for_piece()
 	var target_rect := Rect2(Vector2.ZERO, size).grow(-size.x * 0.04)
-	draw_texture_rect_region(candy_atlas, target_rect, source_rect)
+	draw_texture_rect_region(CANDY_ATLAS, target_rect, source_rect)
 	return true
 
 func _atlas_rect_for_piece() -> Rect2:
@@ -190,12 +187,3 @@ func _atlas_rect_for_piece() -> Rect2:
 		_:
 			pass
 	return Rect2(column * 100, row * 100, 100, 100)
-
-static func _get_candy_atlas() -> Texture2D:
-	if _candy_atlas != null:
-		return _candy_atlas
-	var image := Image.new()
-	if image.load(CANDY_ATLAS_PATH) != OK:
-		return null
-	_candy_atlas = ImageTexture.create_from_image(image)
-	return _candy_atlas
