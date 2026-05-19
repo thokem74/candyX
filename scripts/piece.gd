@@ -2,6 +2,9 @@ extends Control
 class_name Piece
 
 const Types = preload("res://scripts/game_types.gd")
+const CANDY_ATLAS_PATH := "res://assets/sprites/candies/melle_candy_match3_assets_candy.png"
+
+static var _candy_atlas: Texture2D
 
 var color_id := 0
 var special_type: int = Types.SpecialType.NONE
@@ -85,6 +88,9 @@ func _draw() -> void:
 	var shadow_color := Color(0.05, 0.05, 0.08, 0.22)
 	draw_circle(center + Vector2(0, size.y * 0.045), radius, shadow_color)
 
+	if _draw_atlas_piece():
+		return
+
 	if special_type == Types.SpecialType.COLOR_BOMB:
 		_draw_color_bomb(center, radius)
 	else:
@@ -154,3 +160,42 @@ func _draw_color_bomb(center: Vector2, radius: float) -> void:
 		var angle := TAU * float(i) / float(Types.PIECE_COLORS.size())
 		draw_circle(center + Vector2(cos(angle), sin(angle)) * radius * 0.48, radius * 0.18, Types.PIECE_COLORS[i])
 	draw_circle(center, radius * 0.2, Color.WHITE)
+
+func _draw_atlas_piece() -> bool:
+	var candy_atlas := _get_candy_atlas()
+	if candy_atlas == null:
+		return false
+	var source_rect := _atlas_rect_for_piece()
+	var target_rect := Rect2(Vector2.ZERO, size).grow(-size.x * 0.04)
+	draw_texture_rect_region(candy_atlas, target_rect, source_rect)
+	return true
+
+func _atlas_rect_for_piece() -> Rect2:
+	var normal_columns := [2, 1, 0, 3, 4, 0]
+	var column: int = normal_columns[color_id % normal_columns.size()]
+	var row := 0
+	match special_type:
+		Types.SpecialType.STRIPED_ROW:
+			row = 1
+			column = clampi(column, 0, 4)
+		Types.SpecialType.STRIPED_COLUMN:
+			row = 2
+			column = clampi(column, 0, 4)
+		Types.SpecialType.WRAPPED:
+			row = 4
+			column = 2
+		Types.SpecialType.COLOR_BOMB:
+			row = 0
+			column = 5
+		_:
+			pass
+	return Rect2(column * 100, row * 100, 100, 100)
+
+static func _get_candy_atlas() -> Texture2D:
+	if _candy_atlas != null:
+		return _candy_atlas
+	var image := Image.new()
+	if image.load(CANDY_ATLAS_PATH) != OK:
+		return null
+	_candy_atlas = ImageTexture.create_from_image(image)
+	return _candy_atlas
