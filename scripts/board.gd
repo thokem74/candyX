@@ -10,12 +10,12 @@ const Types = preload("res://scripts/game_types.gd")
 const PIECE_SCENE := preload("res://scenes/Piece.tscn")
 const BOARD_SIZE := 8
 
-const SWAP_SOUND_PATH := "res://assets/audio/sfx/kenney_swap_switch_002.ogg"
-const MATCH_SOUND_PATH := "res://assets/audio/sfx/kenney_match_glass_003.ogg"
-const SPECIAL_SOUND_PATH := "res://assets/audio/sfx/kenney_special_confirmation_003.ogg"
-const INVALID_SOUND_PATH := "res://assets/audio/sfx/kenney_invalid_error_004.ogg"
-const LEVEL_COMPLETE_SOUND_PATH := "res://assets/audio/sfx/joth_level_complete_level_up.mp3"
-const LEVEL_FAILED_SOUND_PATH := "res://assets/audio/sfx/joth_level_failed_menu_error.mp3"
+const SWAP_SOUND: AudioStream = preload("res://assets/audio/sfx/kenney_swap_switch_002.ogg")
+const MATCH_SOUND: AudioStream = preload("res://assets/audio/sfx/kenney_match_glass_003.ogg")
+const SPECIAL_SOUND: AudioStream = preload("res://assets/audio/sfx/kenney_special_confirmation_003.ogg")
+const INVALID_SOUND: AudioStream = preload("res://assets/audio/sfx/kenney_invalid_error_004.ogg")
+const LEVEL_COMPLETE_SOUND: AudioStream = preload("res://assets/audio/sfx/joth_level_complete_level_up.mp3")
+const LEVEL_FAILED_SOUND: AudioStream = preload("res://assets/audio/sfx/joth_level_failed_menu_error.mp3")
 
 var grid: Array = []
 var score := 0
@@ -37,13 +37,8 @@ var _board_origin := Vector2.ZERO
 var _selected_cell: Vector2i = Types.INVALID_CELL
 var _press_cell: Vector2i = Types.INVALID_CELL
 var _press_position := Vector2.ZERO
-var _swap_sound: AudioStream
-var _match_sound: AudioStream
-var _special_sound: AudioStream
-var _invalid_sound: AudioStream
-var _level_complete_sound: AudioStream
-var _level_failed_sound: AudioStream
-var _sfx_player: AudioStreamPlayer
+var _sfx_players: Array[AudioStreamPlayer] = []
+var _next_sfx_player := 0
 
 func _ready() -> void:
 	randomize()
@@ -363,7 +358,7 @@ func _create_initial_board() -> void:
 
 func _clear_board() -> void:
 	for child in get_children():
-		if child == _sfx_player or child is AudioStreamPlayer:
+		if child is AudioStreamPlayer:
 			continue
 		child.queue_free()
 	grid.clear()
@@ -661,48 +656,35 @@ func _is_striped(special_type: int) -> bool:
 	return special_type == Types.SpecialType.STRIPED_ROW or special_type == Types.SpecialType.STRIPED_COLUMN
 
 func play_swap_sound() -> void:
-	_play_sfx(_swap_sound)
+	_play_sfx(SWAP_SOUND)
 
 func play_match_sound() -> void:
-	_play_sfx(_match_sound)
+	_play_sfx(MATCH_SOUND)
 
 func play_special_sound() -> void:
-	_play_sfx(_special_sound)
+	_play_sfx(SPECIAL_SOUND)
 
 func play_level_complete_sound() -> void:
-	_play_sfx(_level_complete_sound)
+	_play_sfx(LEVEL_COMPLETE_SOUND)
 
 func play_level_failed_sound() -> void:
-	_play_sfx(_level_failed_sound)
+	_play_sfx(LEVEL_FAILED_SOUND)
 
 func play_invalid_sound() -> void:
-	_play_sfx(_invalid_sound)
+	_play_sfx(INVALID_SOUND)
 
 func _setup_audio() -> void:
-	_sfx_player = AudioStreamPlayer.new()
-	_sfx_player.volume_db = -2.0
-	add_child(_sfx_player)
-	_swap_sound = _load_audio_stream(SWAP_SOUND_PATH)
-	_match_sound = _load_audio_stream(MATCH_SOUND_PATH)
-	_special_sound = _load_audio_stream(SPECIAL_SOUND_PATH)
-	_invalid_sound = _load_audio_stream(INVALID_SOUND_PATH)
-	_level_complete_sound = _load_audio_stream(LEVEL_COMPLETE_SOUND_PATH)
-	_level_failed_sound = _load_audio_stream(LEVEL_FAILED_SOUND_PATH)
+	for i in 4:
+		var player := AudioStreamPlayer.new()
+		player.volume_db = -2.0
+		add_child(player)
+		_sfx_players.append(player)
 
 func _play_sfx(stream: AudioStream) -> void:
-	if stream == null or _sfx_player == null:
+	if stream == null or _sfx_players.is_empty():
 		return
-	_sfx_player.stream = stream
-	_sfx_player.play()
-
-func _load_audio_stream(path: String) -> AudioStream:
-	var extension := path.get_extension().to_lower()
-	match extension:
-		"ogg":
-			return AudioStreamOggVorbis.load_from_file(path)
-		"mp3":
-			return AudioStreamMP3.load_from_file(path)
-		"wav":
-			return AudioStreamWAV.load_from_file(path)
-		_:
-			return null
+	var player := _sfx_players[_next_sfx_player]
+	_next_sfx_player = (_next_sfx_player + 1) % _sfx_players.size()
+	player.stop()
+	player.stream = stream
+	player.play()

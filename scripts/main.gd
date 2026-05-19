@@ -3,7 +3,7 @@ extends Control
 const Levels = preload("res://scripts/level_data.gd")
 const BOARD_SCENE := preload("res://scenes/Board.tscn")
 const BACKGROUND_TEXTURE: Texture2D = preload("res://assets/sprites/backgrounds/melle_candy_match3_background_blur.png")
-const MUSIC_PATH := "res://assets/audio/music/zane_little_flowerbed_fields.ogg"
+const MUSIC_STREAM: AudioStreamOggVorbis = preload("res://assets/audio/music/zane_little_flowerbed_fields.ogg")
 
 var _levels: Array[Dictionary] = Levels.levels()
 var _level_index := 0
@@ -175,9 +175,9 @@ func _start_music() -> void:
 	_music_player = AudioStreamPlayer.new()
 	_music_player.volume_db = -18.0
 	add_child(_music_player)
-	var stream := AudioStreamOggVorbis.load_from_file(MUSIC_PATH)
-	if stream == null:
+	if MUSIC_STREAM == null:
 		return
+	var stream: AudioStreamOggVorbis = MUSIC_STREAM.duplicate()
 	stream.loop = true
 	_music_player.stream = stream
 	_music_player.play()
