@@ -1,0 +1,165 @@
+extends Control
+
+const LevelData = preload("res://scripts/level_data.gd")
+const BOARD_SCENE := preload("res://scenes/Board.tscn")
+
+var _levels: Array[Dictionary] = LevelData.levels()
+var _level_index := 0
+
+var _board
+var _level_label: Label
+var _score_label: Label
+var _target_label: Label
+var _moves_label: Label
+var _goal_label: Label
+var _message_label: Label
+var _restart_button: Button
+var _next_button: Button
+
+func _ready() -> void:
+	_build_ui()
+	_start_level(0)
+
+func _build_ui() -> void:
+	var background := ColorRect.new()
+	background.color = Color("#171925")
+	background.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(background)
+
+	var margin := MarginContainer.new()
+	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
+	margin.add_theme_constant_override("margin_left", 24)
+	margin.add_theme_constant_override("margin_top", 26)
+	margin.add_theme_constant_override("margin_right", 24)
+	margin.add_theme_constant_override("margin_bottom", 22)
+	add_child(margin)
+
+	var root := VBoxContainer.new()
+	root.add_theme_constant_override("separation", 14)
+	margin.add_child(root)
+
+	var title := Label.new()
+	title.text = "candyX"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 34)
+	title.add_theme_color_override("font_color", Color("#fff8df"))
+	root.add_child(title)
+
+	var info_panel := PanelContainer.new()
+	info_panel.self_modulate = Color("#23283a")
+	root.add_child(info_panel)
+
+	var info_grid := GridContainer.new()
+	info_grid.columns = 2
+	info_grid.add_theme_constant_override("h_separation", 18)
+	info_grid.add_theme_constant_override("v_separation", 8)
+	info_panel.add_child(info_grid)
+
+	_level_label = _make_stat_label()
+	_score_label = _make_stat_label()
+	_target_label = _make_stat_label()
+	_moves_label = _make_stat_label()
+	info_grid.add_child(_level_label)
+	info_grid.add_child(_score_label)
+	info_grid.add_child(_target_label)
+	info_grid.add_child(_moves_label)
+
+	_goal_label = Label.new()
+	_goal_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_goal_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_goal_label.add_theme_font_size_override("font_size", 18)
+	_goal_label.add_theme_color_override("font_color", Color("#dbe8ff"))
+	root.add_child(_goal_label)
+
+	var board_frame := Control.new()
+	board_frame.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	board_frame.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	board_frame.custom_minimum_size = Vector2(320, 320)
+	root.add_child(board_frame)
+
+	_board = BOARD_SCENE.instantiate()
+	_board.set_anchors_preset(Control.PRESET_FULL_RECT)
+	board_frame.add_child(_board)
+	_board.score_changed.connect(_on_score_changed)
+	_board.moves_changed.connect(_on_moves_changed)
+	_board.goal_changed.connect(_on_goal_changed)
+	_board.level_finished.connect(_on_level_finished)
+
+	var message_panel := PanelContainer.new()
+	message_panel.self_modulate = Color("#202532")
+	root.add_child(message_panel)
+
+	_message_label = Label.new()
+	_message_label.text = ""
+	_message_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_message_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_message_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_message_label.custom_minimum_size = Vector2(0, 58)
+	_message_label.add_theme_font_size_override("font_size", 20)
+	_message_label.add_theme_color_override("font_color", Color("#fff8df"))
+	message_panel.add_child(_message_label)
+
+	var buttons := HBoxContainer.new()
+	buttons.alignment = BoxContainer.ALIGNMENT_CENTER
+	buttons.add_theme_constant_override("separation", 12)
+	root.add_child(buttons)
+
+	_restart_button = Button.new()
+	_restart_button.text = "Restart"
+	_restart_button.custom_minimum_size = Vector2(128, 52)
+	_restart_button.pressed.connect(_restart_level)
+	buttons.add_child(_restart_button)
+
+	_next_button = Button.new()
+	_next_button.text = "Next"
+	_next_button.custom_minimum_size = Vector2(128, 52)
+	_next_button.pressed.connect(_next_level)
+	buttons.add_child(_next_button)
+
+func _make_stat_label() -> Label:
+	var label := Label.new()
+	label.add_theme_font_size_override("font_size", 17)
+	label.add_theme_color_override("font_color", Color("#f5f7ff"))
+	label.custom_minimum_size = Vector2(140, 28)
+	return label
+
+func _start_level(index: int) -> void:
+	_level_index = clampi(index, 0, _levels.size() - 1)
+	var data := _levels[_level_index]
+	_level_label.text = "Level: %d/%d" % [_level_index + 1, _levels.size()]
+	_target_label.text = "Target: %d" % int(data.get("target_score", data.get("goal_count", 0)))
+	_message_label.text = data.get("description", "")
+	_message_label.modulate.a = 1.0
+	_next_button.visible = false
+	_board.start_level(data)
+
+func _restart_level() -> void:
+	_start_level(_level_index)
+
+func _next_level() -> void:
+	if _level_index < _levels.size() - 1:
+		_start_level(_level_index + 1)
+
+func _on_score_changed(score: int) -> void:
+	_score_label.text = "Score: %d" % score
+
+func _on_moves_changed(moves_remaining: int) -> void:
+	_moves_label.text = "Moves: %d" % moves_remaining
+
+func _on_goal_changed(text: String) -> void:
+	_goal_label.text = "Goal: %s" % text
+
+func _on_level_finished(success: bool) -> void:
+	if success:
+		if _level_index >= _levels.size() - 1:
+			_message_label.text = "All levels complete!"
+			_next_button.visible = false
+		else:
+			_message_label.text = "Level complete!"
+			_next_button.visible = true
+	else:
+		_message_label.text = "Level failed. Try again."
+		_next_button.visible = false
+	var tween := create_tween()
+	_message_label.scale = Vector2.ONE * 0.92
+	tween.tween_property(_message_label, "scale", Vector2.ONE, 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
