@@ -10,6 +10,13 @@ const Types = preload("res://scripts/game_types.gd")
 const PIECE_SCENE := preload("res://scenes/Piece.tscn")
 const BOARD_SIZE := 8
 
+const SWAP_SOUND: AudioStream = preload("res://assets/audio/sfx/kenney_swap_switch_002.ogg")
+const MATCH_SOUND: AudioStream = preload("res://assets/audio/sfx/kenney_match_glass_003.ogg")
+const SPECIAL_SOUND: AudioStream = preload("res://assets/audio/sfx/kenney_special_confirmation_003.ogg")
+const INVALID_SOUND: AudioStream = preload("res://assets/audio/sfx/kenney_invalid_error_004.ogg")
+const LEVEL_COMPLETE_SOUND: AudioStream = preload("res://assets/audio/sfx/joth_level_complete_level_up.mp3")
+const LEVEL_FAILED_SOUND: AudioStream = preload("res://assets/audio/sfx/joth_level_failed_menu_error.mp3")
+
 var grid: Array = []
 var score := 0
 var moves_remaining := 0
@@ -30,11 +37,14 @@ var _board_origin := Vector2.ZERO
 var _selected_cell: Vector2i = Types.INVALID_CELL
 var _press_cell: Vector2i = Types.INVALID_CELL
 var _press_position := Vector2.ZERO
+var _sfx_players: Array[AudioStreamPlayer] = []
+var _next_sfx_player := 0
 
 func _ready() -> void:
 	randomize()
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	set_process_unhandled_input(false)
+	_setup_audio()
 
 func start_level(new_level_data: Dictionary) -> void:
 	level_data = new_level_data
@@ -146,7 +156,7 @@ func _try_player_swap(a: Vector2i, b: Vector2i) -> void:
 	var matches := _find_matches()
 	if combo_cells.is_empty() and matches.is_empty():
 		await _swap_pieces(a, b, true)
-		play_swap_sound()
+		play_invalid_sound()
 		input_locked = false
 		return
 	moves_remaining -= 1
@@ -348,6 +358,8 @@ func _create_initial_board() -> void:
 
 func _clear_board() -> void:
 	for child in get_children():
+		if child is AudioStreamPlayer:
+			continue
 		child.queue_free()
 	grid.clear()
 
@@ -644,21 +656,35 @@ func _is_striped(special_type: int) -> bool:
 	return special_type == Types.SpecialType.STRIPED_ROW or special_type == Types.SpecialType.STRIPED_COLUMN
 
 func play_swap_sound() -> void:
-	# TODO: Add a generated or imported swap sound here when audio polish begins.
-	pass
+	_play_sfx(SWAP_SOUND)
 
 func play_match_sound() -> void:
-	# TODO: Add a generated or imported match sound here when audio polish begins.
-	pass
+	_play_sfx(MATCH_SOUND)
 
 func play_special_sound() -> void:
-	# TODO: Add a generated or imported special-piece sound here when audio polish begins.
-	pass
+	_play_sfx(SPECIAL_SOUND)
 
 func play_level_complete_sound() -> void:
-	# TODO: Add a generated or imported level-complete sound here when audio polish begins.
-	pass
+	_play_sfx(LEVEL_COMPLETE_SOUND)
 
 func play_level_failed_sound() -> void:
-	# TODO: Add a generated or imported level-failed sound here when audio polish begins.
-	pass
+	_play_sfx(LEVEL_FAILED_SOUND)
+
+func play_invalid_sound() -> void:
+	_play_sfx(INVALID_SOUND)
+
+func _setup_audio() -> void:
+	for i in 4:
+		var player := AudioStreamPlayer.new()
+		player.volume_db = -2.0
+		add_child(player)
+		_sfx_players.append(player)
+
+func _play_sfx(stream: AudioStream) -> void:
+	if stream == null or _sfx_players.is_empty():
+		return
+	var player := _sfx_players[_next_sfx_player]
+	_next_sfx_player = (_next_sfx_player + 1) % _sfx_players.size()
+	player.stop()
+	player.stream = stream
+	player.play()
