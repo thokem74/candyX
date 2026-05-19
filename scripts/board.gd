@@ -6,7 +6,7 @@ signal moves_changed(moves_remaining: int)
 signal goal_changed(text: String)
 signal level_finished(success: bool)
 
-const GameTypes = preload("res://scripts/game_types.gd")
+const Types = preload("res://scripts/game_types.gd")
 const PIECE_SCENE := preload("res://scenes/Piece.tscn")
 const BOARD_SIZE := 8
 
@@ -19,7 +19,7 @@ var input_locked := true
 var game_over := false
 
 var _available_colors: Array = []
-var _goal_type := GameTypes.GoalType.SCORE
+var _goal_type: int = Types.GoalType.SCORE
 var _goal_count := 0
 var _goal_color := -1
 var _cleared_goal_color := 0
@@ -27,8 +27,8 @@ var _specials_triggered := 0
 
 var _cell_size := 1.0
 var _board_origin := Vector2.ZERO
-var _selected_cell := GameTypes.INVALID_CELL
-var _press_cell := GameTypes.INVALID_CELL
+var _selected_cell: Vector2i = Types.INVALID_CELL
+var _press_cell: Vector2i = Types.INVALID_CELL
 var _press_position := Vector2.ZERO
 
 func _ready() -> void:
@@ -41,14 +41,14 @@ func start_level(new_level_data: Dictionary) -> void:
 	score = 0
 	moves_remaining = int(level_data.get("moves", 20))
 	_available_colors = level_data.get("colors", [0, 1, 2, 3])
-	_goal_type = int(level_data.get("goal_type", GameTypes.GoalType.SCORE))
+	_goal_type = int(level_data.get("goal_type", Types.GoalType.SCORE))
 	_goal_count = int(level_data.get("goal_count", level_data.get("target_score", 1000)))
 	_goal_color = int(level_data.get("goal_color", -1))
 	_cleared_goal_color = 0
 	_specials_triggered = 0
 	game_over = false
 	input_locked = true
-	_selected_cell = GameTypes.INVALID_CELL
+	_selected_cell = Types.INVALID_CELL
 	_clear_board()
 	_create_initial_board()
 	_layout_pieces(false)
@@ -118,12 +118,12 @@ func _handle_tap(cell: Vector2i) -> void:
 		queue_redraw()
 		return
 	if cell == _selected_cell:
-		_selected_cell = GameTypes.INVALID_CELL
+		_selected_cell = Types.INVALID_CELL
 		queue_redraw()
 		return
 	if _are_adjacent(_selected_cell, cell):
 		var from_cell := _selected_cell
-		_selected_cell = GameTypes.INVALID_CELL
+		_selected_cell = Types.INVALID_CELL
 		queue_redraw()
 		_try_player_swap(from_cell, cell)
 	else:
@@ -134,7 +134,7 @@ func _try_player_swap(a: Vector2i, b: Vector2i) -> void:
 	if input_locked or game_over or not _are_adjacent(a, b):
 		return
 	input_locked = true
-	_selected_cell = GameTypes.INVALID_CELL
+	_selected_cell = Types.INVALID_CELL
 	queue_redraw()
 	var piece_a = _piece_at(a)
 	var piece_b = _piece_at(b)
@@ -175,7 +175,7 @@ func _resolve_matches(matches: Array, preferred_cells: Array) -> void:
 	var special_type := _special_type_from_matches(matches)
 	var cells_to_clear := _cells_from_matches(matches)
 	var new_special_piece = null
-	if special_type != GameTypes.SpecialType.NONE and _is_valid_cell(special_cell):
+	if special_type != Types.SpecialType.NONE and _is_valid_cell(special_cell):
 		new_special_piece = _piece_at(special_cell)
 		cells_to_clear.erase(special_cell)
 	var expanded_cells := _expand_special_activations(cells_to_clear)
@@ -194,12 +194,12 @@ func _clear_cells(cells: Array, protected_piece) -> void:
 		var piece = _piece_at(cell)
 		if piece == null or piece == protected_piece:
 			continue
-		if piece.special_type != GameTypes.SpecialType.NONE:
+		if piece.special_type != Types.SpecialType.NONE:
 			_specials_triggered += 1
 			play_special_sound()
-		if _goal_type == GameTypes.GoalType.CLEAR_COLOR and piece.color_id == _goal_color:
+		if _goal_type == Types.GoalType.CLEAR_COLOR and piece.color_id == _goal_color:
 			_cleared_goal_color += 1
-		score += 60 if piece.special_type == GameTypes.SpecialType.NONE else 140
+		score += 60 if piece.special_type == Types.SpecialType.NONE else 140
 		grid[cell.x][cell.y] = null
 		pieces_to_free.append(piece)
 		clear_tasks.append(piece.animate_clear())
@@ -216,7 +216,7 @@ func _expand_special_activations(base_cells: Array) -> Array:
 	while index < result.size():
 		var cell: Vector2i = result[index]
 		var piece = _piece_at(cell)
-		if piece != null and piece.special_type != GameTypes.SpecialType.NONE:
+		if piece != null and piece.special_type != Types.SpecialType.NONE:
 			var extra := _activation_cells_for_special(cell, piece.special_type, -1)
 			for extra_cell in extra:
 				if _is_valid_cell(extra_cell) and not result.has(extra_cell):
@@ -231,34 +231,34 @@ func _combo_clear_cells(piece_a, piece_b) -> Array:
 	var b: Vector2i = piece_b.grid_position
 	var a_special: int = piece_a.special_type
 	var b_special: int = piece_b.special_type
-	if a_special == GameTypes.SpecialType.NONE and b_special == GameTypes.SpecialType.NONE:
+	if a_special == Types.SpecialType.NONE and b_special == Types.SpecialType.NONE:
 		return []
-	if a_special == GameTypes.SpecialType.COLOR_BOMB and b_special == GameTypes.SpecialType.COLOR_BOMB:
+	if a_special == Types.SpecialType.COLOR_BOMB and b_special == Types.SpecialType.COLOR_BOMB:
 		return _all_board_cells()
-	if a_special == GameTypes.SpecialType.COLOR_BOMB:
+	if a_special == Types.SpecialType.COLOR_BOMB:
 		return _color_bomb_combo_cells(a, piece_b.color_id, b_special)
-	if b_special == GameTypes.SpecialType.COLOR_BOMB:
+	if b_special == Types.SpecialType.COLOR_BOMB:
 		return _color_bomb_combo_cells(b, piece_a.color_id, a_special)
 	if _is_striped(a_special) and _is_striped(b_special):
 		return _row_cells(a.y) + _column_cells(b.x)
-	if a_special == GameTypes.SpecialType.WRAPPED and b_special == GameTypes.SpecialType.WRAPPED:
+	if a_special == Types.SpecialType.WRAPPED and b_special == Types.SpecialType.WRAPPED:
 		return _area_cells(a, 2) + _area_cells(b, 2)
 	return _activation_cells_for_special(a, a_special, -1) + _activation_cells_for_special(b, b_special, -1)
 
 func _color_bomb_combo_cells(color_bomb_cell: Vector2i, target_color: int, other_special: int) -> Array:
 	var cells: Array = [color_bomb_cell]
-	if other_special == GameTypes.SpecialType.COLOR_BOMB:
+	if other_special == Types.SpecialType.COLOR_BOMB:
 		return _all_board_cells()
 	if _is_striped(other_special):
 		var converted := 0
 		for cell in _cells_with_color(target_color):
 			var piece = _piece_at(cell)
 			if piece != null and converted < 6:
-				piece.set_special(GameTypes.SpecialType.STRIPED_ROW if converted % 2 == 0 else GameTypes.SpecialType.STRIPED_COLUMN)
+				piece.set_special(Types.SpecialType.STRIPED_ROW if converted % 2 == 0 else Types.SpecialType.STRIPED_COLUMN)
 				cells += _activation_cells_for_special(cell, piece.special_type, target_color)
 				converted += 1
 		return cells
-	if other_special == GameTypes.SpecialType.WRAPPED:
+	if other_special == Types.SpecialType.WRAPPED:
 		for cell in _cells_with_color(target_color):
 			cells += _area_cells(cell, 1)
 		return cells
@@ -266,13 +266,13 @@ func _color_bomb_combo_cells(color_bomb_cell: Vector2i, target_color: int, other
 
 func _activation_cells_for_special(cell: Vector2i, special_type: int, target_color: int) -> Array:
 	match special_type:
-		GameTypes.SpecialType.STRIPED_ROW:
+		Types.SpecialType.STRIPED_ROW:
 			return _row_cells(cell.y)
-		GameTypes.SpecialType.STRIPED_COLUMN:
+		Types.SpecialType.STRIPED_COLUMN:
 			return _column_cells(cell.x)
-		GameTypes.SpecialType.WRAPPED:
+		Types.SpecialType.WRAPPED:
 			return _area_cells(cell, 1)
-		GameTypes.SpecialType.COLOR_BOMB:
+		Types.SpecialType.COLOR_BOMB:
 			if target_color >= 0:
 				return [cell] + _cells_with_color(target_color)
 			var piece = _piece_at(cell)
@@ -341,7 +341,7 @@ func _create_initial_board() -> void:
 		for y in BOARD_SIZE:
 			for x in BOARD_SIZE:
 				var color_id := _random_color_without_start_match(x, y)
-				var piece = _create_piece(color_id, GameTypes.SpecialType.NONE, Vector2i(x, y))
+				var piece = _create_piece(color_id, Types.SpecialType.NONE, Vector2i(x, y))
 				grid[x][y] = piece
 		if _find_matches().is_empty() and _has_possible_move():
 			return
@@ -352,7 +352,7 @@ func _clear_board() -> void:
 	grid.clear()
 
 func _spawn_piece(cell: Vector2i, animate: bool):
-	var piece = _create_piece(_available_colors.pick_random(), GameTypes.SpecialType.NONE, cell)
+	var piece = _create_piece(_available_colors.pick_random(), Types.SpecialType.NONE, cell)
 	grid[cell.x][cell.y] = piece
 	if animate:
 		piece.animate_spawn()
@@ -421,13 +421,13 @@ func _find_matches() -> Array:
 func _special_type_from_matches(matches: Array) -> int:
 	for match_data in matches:
 		if match_data["cells"].size() >= 5:
-			return GameTypes.SpecialType.COLOR_BOMB
+			return Types.SpecialType.COLOR_BOMB
 	if _has_intersection(matches):
-		return GameTypes.SpecialType.WRAPPED
+		return Types.SpecialType.WRAPPED
 	for match_data in matches:
 		if match_data["cells"].size() == 4:
-			return GameTypes.SpecialType.STRIPED_ROW if match_data["orientation"] == "h" else GameTypes.SpecialType.STRIPED_COLUMN
-	return GameTypes.SpecialType.NONE
+			return Types.SpecialType.STRIPED_ROW if match_data["orientation"] == "h" else Types.SpecialType.STRIPED_COLUMN
+	return Types.SpecialType.NONE
 
 func _has_intersection(matches: Array) -> bool:
 	for h_match in matches:
@@ -455,7 +455,7 @@ func _choose_special_cell(matches: Array, preferred_cells: Array) -> Vector2i:
 			for h_cell in h_match["cells"]:
 				if v_match["cells"].has(h_cell):
 					return h_cell
-	return all_cells[0] if not all_cells.is_empty() else GameTypes.INVALID_CELL
+	return all_cells[0] if not all_cells.is_empty() else Types.INVALID_CELL
 
 func _cells_from_matches(matches: Array) -> Array:
 	var cells: Array = []
@@ -504,7 +504,7 @@ func _reshuffle_board() -> void:
 	_layout_pieces(true)
 	await get_tree().create_timer(0.22).timeout
 	while not _find_matches().is_empty():
-		await _resolve_after_swap(GameTypes.INVALID_CELL, GameTypes.INVALID_CELL, [])
+		await _resolve_after_swap(Types.INVALID_CELL, Types.INVALID_CELL, [])
 
 func _layout_pieces(animated: bool) -> void:
 	_cell_size = min(size.x, size.y) / float(BOARD_SIZE)
@@ -534,24 +534,24 @@ func _check_end_state() -> void:
 
 func _is_goal_complete() -> bool:
 	match _goal_type:
-		GameTypes.GoalType.CLEAR_COLOR:
+		Types.GoalType.CLEAR_COLOR:
 			return _cleared_goal_color >= _goal_count and score >= int(level_data.get("target_score", 0))
-		GameTypes.GoalType.SPECIALS:
+		Types.GoalType.SPECIALS:
 			return _specials_triggered >= _goal_count and score >= int(level_data.get("target_score", 0))
 		_:
 			return score >= _goal_count
 
 func _goal_text() -> String:
 	match _goal_type:
-		GameTypes.GoalType.CLEAR_COLOR:
+		Types.GoalType.CLEAR_COLOR:
 			return "%s %d/%d  |  Score %d/%d" % [
-				GameTypes.label_for(_goal_color),
+				Types.label_for(_goal_color),
 				_cleared_goal_color,
 				_goal_count,
 				score,
 				int(level_data.get("target_score", 0)),
 			]
-		GameTypes.GoalType.SPECIALS:
+		Types.GoalType.SPECIALS:
 			return "Specials %d/%d  |  Score %d/%d" % [
 				_specials_triggered,
 				_goal_count,
@@ -590,7 +590,7 @@ func _are_adjacent(a: Vector2i, b: Vector2i) -> bool:
 func _cell_from_local(local_position: Vector2) -> Vector2i:
 	var board_position := local_position - _board_origin
 	var cell := Vector2i(floori(board_position.x / _cell_size), floori(board_position.y / _cell_size))
-	return cell if _is_valid_cell(cell) else GameTypes.INVALID_CELL
+	return cell if _is_valid_cell(cell) else Types.INVALID_CELL
 
 func _cell_top_left(cell: Vector2i) -> Vector2:
 	return _board_origin + Vector2(cell.x, cell.y) * _cell_size
@@ -641,7 +641,7 @@ func _unique_valid_cells(cells: Array) -> Array:
 	return result
 
 func _is_striped(special_type: int) -> bool:
-	return special_type == GameTypes.SpecialType.STRIPED_ROW or special_type == GameTypes.SpecialType.STRIPED_COLUMN
+	return special_type == Types.SpecialType.STRIPED_ROW or special_type == Types.SpecialType.STRIPED_COLUMN
 
 func play_swap_sound() -> void:
 	# TODO: Add a generated or imported swap sound here when audio polish begins.

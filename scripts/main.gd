@@ -1,9 +1,9 @@
 extends Control
 
-const LevelData = preload("res://scripts/level_data.gd")
+const Levels = preload("res://scripts/level_data.gd")
 const BOARD_SCENE := preload("res://scenes/Board.tscn")
 
-var _levels: Array[Dictionary] = LevelData.levels()
+var _levels: Array[Dictionary] = Levels.levels()
 var _level_index := 0
 
 var _board

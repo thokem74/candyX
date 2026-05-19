@@ -1,11 +1,11 @@
 extends Control
 class_name Piece
 
-const GameTypes = preload("res://scripts/game_types.gd")
+const Types = preload("res://scripts/game_types.gd")
 
 var color_id := 0
-var special_type := GameTypes.SpecialType.NONE
-var grid_position := GameTypes.INVALID_CELL
+var special_type: int = Types.SpecialType.NONE
+var grid_position: Vector2i = Types.INVALID_CELL
 
 var _label: Label
 
@@ -72,8 +72,8 @@ func _notification(what: int) -> void:
 func _update_label() -> void:
 	if not _label:
 		return
-	var text := GameTypes.label_for(color_id)
-	var special_text := GameTypes.special_label(special_type)
+	var text := Types.label_for(color_id)
+	var special_text := Types.special_label(special_type)
 	if special_text != "":
 		text = special_text
 	_label.text = text
@@ -81,25 +81,25 @@ func _update_label() -> void:
 func _draw() -> void:
 	var center := size * 0.5
 	var radius: float = min(size.x, size.y) * 0.39
-	var base_color: Color = GameTypes.color_for(color_id)
+	var base_color: Color = Types.color_for(color_id)
 	var shadow_color := Color(0.05, 0.05, 0.08, 0.22)
 	draw_circle(center + Vector2(0, size.y * 0.045), radius, shadow_color)
 
-	if special_type == GameTypes.SpecialType.COLOR_BOMB:
+	if special_type == Types.SpecialType.COLOR_BOMB:
 		_draw_color_bomb(center, radius)
 	else:
 		_draw_normal_piece(center, radius, base_color)
 
 	match special_type:
-		GameTypes.SpecialType.STRIPED_ROW:
+		Types.SpecialType.STRIPED_ROW:
 			for offset in [-0.18, 0.0, 0.18]:
 				var y: float = center.y + size.y * offset
 				draw_line(Vector2(center.x - radius * 0.7, y), Vector2(center.x + radius * 0.7, y), Color.WHITE, max(2.0, size.x * 0.045), true)
-		GameTypes.SpecialType.STRIPED_COLUMN:
+		Types.SpecialType.STRIPED_COLUMN:
 			for offset in [-0.18, 0.0, 0.18]:
 				var x: float = center.x + size.x * offset
 				draw_line(Vector2(x, center.y - radius * 0.7), Vector2(x, center.y + radius * 0.7), Color.WHITE, max(2.0, size.x * 0.045), true)
-		GameTypes.SpecialType.WRAPPED:
+		Types.SpecialType.WRAPPED:
 			var rect := Rect2(center - Vector2.ONE * radius * 0.92, Vector2.ONE * radius * 1.84)
 			draw_rect(rect, Color.WHITE, false, max(3.0, size.x * 0.055))
 		_:
@@ -150,7 +150,7 @@ func _draw_normal_piece(center: Vector2, radius: float, base_color: Color) -> vo
 
 func _draw_color_bomb(center: Vector2, radius: float) -> void:
 	draw_circle(center, radius, Color("#20202a"))
-	for i in GameTypes.PIECE_COLORS.size():
-		var angle := TAU * float(i) / float(GameTypes.PIECE_COLORS.size())
-		draw_circle(center + Vector2(cos(angle), sin(angle)) * radius * 0.48, radius * 0.18, GameTypes.PIECE_COLORS[i])
+	for i in Types.PIECE_COLORS.size():
+		var angle := TAU * float(i) / float(Types.PIECE_COLORS.size())
+		draw_circle(center + Vector2(cos(angle), sin(angle)) * radius * 0.48, radius * 0.18, Types.PIECE_COLORS[i])
 	draw_circle(center, radius * 0.2, Color.WHITE)
