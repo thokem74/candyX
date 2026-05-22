@@ -162,13 +162,15 @@ func _draw_color_bomb(center: Vector2, radius: float) -> void:
 func _draw_atlas_piece() -> bool:
 	if CANDY_ATLAS == null:
 		return false
+	if color_id >= 5 and special_type != Types.SpecialType.COLOR_BOMB:
+		return false
 	var source_rect := _atlas_rect_for_piece()
 	var target_rect := Rect2(Vector2.ZERO, size).grow(-size.x * 0.04)
 	draw_texture_rect_region(CANDY_ATLAS, target_rect, source_rect)
 	return true
 
 func _atlas_rect_for_piece() -> Rect2:
-	var normal_columns := [2, 1, 0, 3, 4, 0]
+	var normal_columns := [2, 1, 0, 3, 4]
 	var column: int = normal_columns[color_id % normal_columns.size()]
 	var row := 0
 	match special_type:
