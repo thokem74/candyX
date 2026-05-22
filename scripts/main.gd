@@ -13,10 +13,12 @@ const PAGE_MARGIN_X := 24
 const PAGE_MARGIN_TOP := 26
 const PAGE_MARGIN_BOTTOM := 22
 const MAX_PLAY_WIDTH := 640
-const MIN_PLAY_WIDTH := 320
+const MIN_PLAY_WIDTH := 360
 const STACK_FIXED_HEIGHT := 286
+const SAVE_PATH := "user://candyx_progress.cfg"
+const SAVE_SECTION := "progress"
+const SAVE_LEVEL_KEY := "current_level_index"
 
-var _levels: Array[Dictionary] = Levels.levels()
 var _level_index := 0
 
 var _board
@@ -28,6 +30,7 @@ var _target_label: Label
 var _moves_label: Label
 var _goal_label: Label
 var _message_label: Label
+var _new_game_button: Button
 var _restart_button: Button
 var _next_button: Button
 var _music_player: AudioStreamPlayer
@@ -35,7 +38,7 @@ var _music_player: AudioStreamPlayer
 func _ready() -> void:
 	_build_ui()
 	_start_music()
-	_start_level(0)
+	_start_level(_load_progress())
 
 func _build_ui() -> void:
 	var background := TextureRect.new()
@@ -145,16 +148,23 @@ func _build_ui() -> void:
 	buttons.custom_minimum_size = Vector2(0, 60)
 	_play_stack.add_child(buttons)
 
+	_new_game_button = Button.new()
+	_new_game_button.text = "New Game"
+	_new_game_button.custom_minimum_size = Vector2(116, 52)
+	_style_menu_button(_new_game_button)
+	_new_game_button.pressed.connect(_new_game)
+	buttons.add_child(_new_game_button)
+
 	_restart_button = Button.new()
 	_restart_button.text = "Restart"
-	_restart_button.custom_minimum_size = Vector2(128, 52)
+	_restart_button.custom_minimum_size = Vector2(116, 52)
 	_style_menu_button(_restart_button)
 	_restart_button.pressed.connect(_restart_level)
 	buttons.add_child(_restart_button)
 
 	_next_button = Button.new()
 	_next_button.text = "Next"
-	_next_button.custom_minimum_size = Vector2(128, 52)
+	_next_button.custom_minimum_size = Vector2(116, 52)
 	_style_menu_button(_next_button)
 	_next_button.pressed.connect(_next_level)
 	buttons.add_child(_next_button)
@@ -221,21 +231,46 @@ func _make_stat_label() -> Label:
 	return label
 
 func _start_level(index: int) -> void:
-	_level_index = clampi(index, 0, _levels.size() - 1)
-	var data := _levels[_level_index]
-	_level_label.text = "Level: %d/%d" % [_level_index + 1, _levels.size()]
+	_level_index = maxi(0, index)
+	var data := Levels.level_for(_level_index)
+	_level_label.text = "Level: %d" % [_level_index + 1]
 	_target_label.text = "Target: %d" % int(data.get("target_score", data.get("goal_count", 0)))
 	_message_label.text = data.get("description", "")
 	_message_label.modulate.a = 1.0
 	_next_button.visible = false
 	_board.start_level(data)
 
+func _new_game() -> void:
+	_reset_progress()
+	_start_level(0)
+
 func _restart_level() -> void:
 	_start_level(_level_index)
 
 func _next_level() -> void:
-	if _level_index < _levels.size() - 1:
-		_start_level(_level_index + 1)
+	var next_level_index := _level_index + 1
+	_save_progress(next_level_index)
+	_start_level(next_level_index)
+
+func _load_progress() -> int:
+	var config := ConfigFile.new()
+	var error := config.load(SAVE_PATH)
+	if error != OK:
+		return 0
+	var value = config.get_value(SAVE_SECTION, SAVE_LEVEL_KEY, 0)
+	if value is int or value is float:
+		return maxi(0, int(value))
+	return 0
+
+func _save_progress(index: int) -> void:
+	var config := ConfigFile.new()
+	config.set_value(SAVE_SECTION, SAVE_LEVEL_KEY, maxi(0, index))
+	var error := config.save(SAVE_PATH)
+	if error != OK:
+		push_warning("Could not save progress to %s" % SAVE_PATH)
+
+func _reset_progress() -> void:
+	_save_progress(0)
 
 func _on_score_changed(score: int) -> void:
 	_score_label.text = "Score: %d" % score
@@ -248,12 +283,8 @@ func _on_goal_changed(text: String) -> void:
 
 func _on_level_finished(success: bool) -> void:
 	if success:
-		if _level_index >= _levels.size() - 1:
-			_message_label.text = "All levels complete!"
-			_next_button.visible = false
-		else:
-			_message_label.text = "Level complete!"
-			_next_button.visible = true
+		_message_label.text = "Level complete!"
+		_next_button.visible = true
 	else:
 		_message_label.text = "Level failed. Try again."
 		_next_button.visible = false
