@@ -20,6 +20,26 @@ This project prefers CC0 assets and does not use assets marked NonCommercial, ed
   - res://assets/sprites/backgrounds/melle_candy_match3_background.png
   - res://assets/sprites/backgrounds/melle_candy_match3_background_blur.png
 
+## UI Pack
+
+- Asset name: UI Pack
+- Source page: https://opengameart.org/content/ui-pack
+- Author: Kenney
+- License: CC0 1.0 Universal
+- Attribution required: No
+- Original filenames:
+  - PNG/Blue/Double/button_rectangle_depth_gradient.png
+  - PNG/Green/Double/button_rectangle_depth_gradient.png
+  - PNG/Extra/Double/input_rectangle.png
+  - PNG/Extra/Double/input_outline_rectangle.png
+  - PNG/Extra/Double/divider_edges.png
+- Local files:
+  - res://assets/sprites/ui/kenney_ui_pack_button_blue_depth_gradient.png
+  - res://assets/sprites/ui/kenney_ui_pack_button_green_depth_gradient.png
+  - res://assets/sprites/ui/kenney_ui_pack_display_rectangle.png
+  - res://assets/sprites/ui/kenney_ui_pack_display_outline_rectangle.png
+  - res://assets/sprites/ui/kenney_ui_pack_divider_edges.png
+
 ## Interface Sounds
 
 - Asset name: Interface Sounds
