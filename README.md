@@ -1,6 +1,6 @@
 # candyX
 
-A mobile-friendly match-3 puzzle prototype for Android, built with Godot 4.x and GDScript. The game uses generated placeholder visuals only and avoids external assets.
+A mobile-friendly match-3 puzzle prototype for Android, built with Godot 4.x and GDScript. The game uses documented CC0 external assets for candy art, UI, sound effects, and music; see `res://assets/licenses/CREDITS.md`.
 
 ## Run in the editor
 
