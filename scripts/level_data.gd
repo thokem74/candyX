@@ -43,7 +43,7 @@ static func levels() -> Array[Dictionary]:
 			"name": "Level 4",
 			"target_score": 2200,
 			"moves": 26,
-			"colors": [0, 1, 2, 3, 4, 5],
+			"colors": [0, 1, 2, 3, 4],
 			"goal_type": Types.GoalType.CLEAR_COLOR,
 			"goal_color": 4,
 			"goal_count": 22,
@@ -53,7 +53,7 @@ static func levels() -> Array[Dictionary]:
 			"name": "Level 5",
 			"target_score": 3000,
 			"moves": 28,
-			"colors": [0, 1, 2, 3, 4, 5],
+			"colors": [0, 1, 2, 3, 4],
 			"goal_type": Types.GoalType.SCORE,
 			"goal_count": 3000,
 			"description": "Reach 3000 points.",
@@ -63,7 +63,7 @@ static func levels() -> Array[Dictionary]:
 static func _generated_level(index: int) -> Dictionary:
 	var level_number := index + 1
 	var tier := index - 4
-	var color_count := mini(6, 4 + tier / 3)
+	var color_count := mini(5, 4 + tier / 3)
 	var colors: Array[int] = []
 	for color_id in color_count:
 		colors.append(color_id)
