@@ -191,10 +191,10 @@ func _make_texture_panel(texture: Texture2D, minimum_size: Vector2) -> PanelCont
 	panel.add_theme_stylebox_override("panel", _make_texture_style(texture, 20, Color.WHITE))
 	return panel
 
-func _make_texture_style(texture: Texture2D, margin: int, modulate: Color) -> StyleBoxTexture:
+func _make_texture_style(texture: Texture2D, margin: int, tint: Color) -> StyleBoxTexture:
 	var style := StyleBoxTexture.new()
 	style.texture = texture
-	style.modulate_color = modulate
+	style.modulate_color = tint
 	style.texture_margin_left = margin
 	style.texture_margin_top = margin
 	style.texture_margin_right = margin

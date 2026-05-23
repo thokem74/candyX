@@ -63,11 +63,11 @@ static func levels() -> Array[Dictionary]:
 static func _generated_level(index: int) -> Dictionary:
 	var level_number := index + 1
 	var tier := index - 4
-	var color_count := mini(5, 4 + tier / 3)
+	var color_count := mini(5, 4 + floori(float(tier) / 3.0))
 	var colors: Array[int] = []
 	for color_id in color_count:
 		colors.append(color_id)
-	var moves := clampi(22 + tier / 4, 22, 32)
+	var moves := clampi(22 + floori(float(tier) / 4.0), 22, 32)
 	var target_score := 1000 + tier * 260 + color_count * 180
 	var data := {
 		"name": "Level %d" % level_number,
@@ -88,7 +88,7 @@ static func _generated_level(index: int) -> Dictionary:
 			data["goal_count"] = goal_count
 			data["description"] = "Clear %d %s pieces." % [goal_count, Types.label_for(goal_color)]
 		_:
-			var goal_count := mini(10, 2 + tier / 3)
+			var goal_count := mini(10, 2 + floori(float(tier) / 3.0))
 			data["goal_type"] = Types.GoalType.SPECIALS
 			data["goal_count"] = goal_count
 			data["description"] = "Trigger %d special pieces." % goal_count
