@@ -82,20 +82,31 @@ func _build_ui() -> void:
 	var info_panel := _make_texture_panel(UI_DISPLAY_TEXTURE, Vector2(0, 116))
 	_play_stack.add_child(info_panel)
 
-	var info_grid := GridContainer.new()
-	info_grid.columns = 2
-	info_grid.add_theme_constant_override("h_separation", 18)
-	info_grid.add_theme_constant_override("v_separation", 8)
-	info_panel.add_child(info_grid)
+	var info_columns := HBoxContainer.new()
+	info_columns.alignment = BoxContainer.ALIGNMENT_CENTER
+	info_columns.add_theme_constant_override("separation", 14)
+	info_columns.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	info_columns.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	info_panel.add_child(info_columns)
+
+	var left_stats := _make_stat_column()
+	var right_stats := _make_stat_column()
+	var info_divider := ColorRect.new()
+	info_divider.color = Color(0.42, 0.46, 0.58, 0.35)
+	info_divider.custom_minimum_size = Vector2(2, 64)
+	info_divider.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 
 	_level_label = _make_stat_label()
 	_score_label = _make_stat_label()
 	_target_label = _make_stat_label()
 	_moves_label = _make_stat_label()
-	info_grid.add_child(_level_label)
-	info_grid.add_child(_score_label)
-	info_grid.add_child(_target_label)
-	info_grid.add_child(_moves_label)
+	left_stats.add_child(_level_label)
+	left_stats.add_child(_target_label)
+	right_stats.add_child(_score_label)
+	right_stats.add_child(_moves_label)
+	info_columns.add_child(left_stats)
+	info_columns.add_child(info_divider)
+	info_columns.add_child(right_stats)
 
 	var goal_panel := _make_texture_panel(UI_DISPLAY_OUTLINE_TEXTURE, Vector2(0, 68))
 	_play_stack.add_child(goal_panel)
@@ -220,9 +231,19 @@ func _style_menu_button(button: Button) -> void:
 	button.add_theme_constant_override("shadow_offset_x", 0)
 	button.add_theme_constant_override("shadow_offset_y", 2)
 
+func _make_stat_column() -> VBoxContainer:
+	var column := VBoxContainer.new()
+	column.alignment = BoxContainer.ALIGNMENT_CENTER
+	column.add_theme_constant_override("separation", 8)
+	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	column.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	return column
+
 func _make_stat_label() -> Label:
 	var label := Label.new()
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	label.add_theme_font_size_override("font_size", 21)
 	label.add_theme_color_override("font_color", UI_TEXT_COLOR)
 	label.add_theme_color_override("font_shadow_color", Color(1, 1, 1, 0.55))
