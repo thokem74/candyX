@@ -14,7 +14,7 @@ const PAGE_MARGIN_TOP := 26
 const PAGE_MARGIN_BOTTOM := 22
 const MAX_PLAY_WIDTH := 640
 const MIN_PLAY_WIDTH := 360
-const STACK_FIXED_HEIGHT := 348
+const STACK_FIXED_HEIGHT := 372
 const SAVE_PATH := "user://candyx_progress.cfg"
 const SAVE_SECTION := "progress"
 const SAVE_LEVEL_KEY := "current_level_index"
@@ -79,7 +79,7 @@ func _build_ui() -> void:
 	_play_stack.add_theme_constant_override("separation", 0)
 	play_center.add_child(_play_stack)
 
-	var info_panel := _make_texture_panel(UI_DISPLAY_TEXTURE, Vector2(0, 116))
+	var info_panel := _make_texture_panel(UI_DISPLAY_TEXTURE, Vector2(0, 124))
 	_play_stack.add_child(info_panel)
 
 	var info_columns := HBoxContainer.new()
@@ -93,7 +93,7 @@ func _build_ui() -> void:
 	var right_stats := _make_stat_column()
 	var info_divider := ColorRect.new()
 	info_divider.color = Color(0.42, 0.46, 0.58, 0.35)
-	info_divider.custom_minimum_size = Vector2(2, 64)
+	info_divider.custom_minimum_size = Vector2(2, 70)
 	info_divider.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 
 	_level_label = _make_stat_label()
@@ -108,14 +108,14 @@ func _build_ui() -> void:
 	info_columns.add_child(info_divider)
 	info_columns.add_child(right_stats)
 
-	var goal_panel := _make_texture_panel(UI_DISPLAY_OUTLINE_TEXTURE, Vector2(0, 68))
+	var goal_panel := _make_texture_panel(UI_DISPLAY_OUTLINE_TEXTURE, Vector2(0, 74))
 	_play_stack.add_child(goal_panel)
 
 	_goal_label = Label.new()
 	_goal_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_goal_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_goal_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_goal_label.add_theme_font_size_override("font_size", 22)
+	_goal_label.add_theme_font_size_override("font_size", 24)
 	_goal_label.add_theme_color_override("font_color", UI_TEXT_COLOR)
 	_goal_label.add_theme_color_override("font_shadow_color", Color(1, 1, 1, 0.55))
 	_goal_label.add_theme_constant_override("shadow_offset_x", 0)
@@ -136,7 +136,7 @@ func _build_ui() -> void:
 	_board.goal_changed.connect(_on_goal_changed)
 	_board.level_finished.connect(_on_level_finished)
 
-	var message_panel := _make_texture_panel(UI_DISPLAY_TEXTURE, Vector2(0, 86))
+	var message_panel := _make_texture_panel(UI_DISPLAY_TEXTURE, Vector2(0, 92))
 	_play_stack.add_child(message_panel)
 
 	_message_label = Label.new()
@@ -144,8 +144,8 @@ func _build_ui() -> void:
 	_message_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_message_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_message_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_message_label.custom_minimum_size = Vector2(0, 70)
-	_message_label.add_theme_font_size_override("font_size", 24)
+	_message_label.custom_minimum_size = Vector2(0, 76)
+	_message_label.add_theme_font_size_override("font_size", 26)
 	_message_label.add_theme_color_override("font_color", UI_TEXT_COLOR)
 	_message_label.add_theme_color_override("font_shadow_color", Color(1, 1, 1, 0.55))
 	_message_label.add_theme_constant_override("shadow_offset_x", 0)
@@ -156,26 +156,26 @@ func _build_ui() -> void:
 	buttons.alignment = BoxContainer.ALIGNMENT_CENTER
 	buttons.add_theme_constant_override("separation", 12)
 	buttons.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	buttons.custom_minimum_size = Vector2(0, 74)
+	buttons.custom_minimum_size = Vector2(0, 78)
 	_play_stack.add_child(buttons)
 
 	_new_game_button = Button.new()
 	_new_game_button.text = "New Game"
-	_new_game_button.custom_minimum_size = Vector2(142, 64)
+	_new_game_button.custom_minimum_size = Vector2(150, 68)
 	_style_menu_button(_new_game_button)
 	_new_game_button.pressed.connect(_new_game)
 	buttons.add_child(_new_game_button)
 
 	_restart_button = Button.new()
 	_restart_button.text = "Restart"
-	_restart_button.custom_minimum_size = Vector2(142, 64)
+	_restart_button.custom_minimum_size = Vector2(150, 68)
 	_style_menu_button(_restart_button)
 	_restart_button.pressed.connect(_restart_level)
 	buttons.add_child(_restart_button)
 
 	_next_button = Button.new()
 	_next_button.text = "Next"
-	_next_button.custom_minimum_size = Vector2(142, 64)
+	_next_button.custom_minimum_size = Vector2(150, 68)
 	_style_menu_button(_next_button)
 	_next_button.pressed.connect(_next_level)
 	buttons.add_child(_next_button)
@@ -222,7 +222,7 @@ func _style_menu_button(button: Button) -> void:
 	button.add_theme_stylebox_override("pressed", _make_texture_style(UI_BUTTON_PRESSED_TEXTURE, 20, Color.WHITE))
 	button.add_theme_stylebox_override("disabled", _make_texture_style(UI_BUTTON_TEXTURE, 20, Color(1, 1, 1, 0.5)))
 	button.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
-	button.add_theme_font_size_override("font_size", 22)
+	button.add_theme_font_size_override("font_size", 24)
 	button.add_theme_color_override("font_color", Color("#ffffff"))
 	button.add_theme_color_override("font_hover_color", Color("#ffffff"))
 	button.add_theme_color_override("font_pressed_color", Color("#ffffff"))
@@ -244,12 +244,12 @@ func _make_stat_label() -> Label:
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	label.add_theme_font_size_override("font_size", 21)
+	label.add_theme_font_size_override("font_size", 23)
 	label.add_theme_color_override("font_color", UI_TEXT_COLOR)
 	label.add_theme_color_override("font_shadow_color", Color(1, 1, 1, 0.55))
 	label.add_theme_constant_override("shadow_offset_x", 0)
 	label.add_theme_constant_override("shadow_offset_y", 1)
-	label.custom_minimum_size = Vector2(164, 34)
+	label.custom_minimum_size = Vector2(172, 36)
 	return label
 
 func _start_level(index: int) -> void:
