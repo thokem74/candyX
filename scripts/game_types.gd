@@ -18,8 +18,7 @@ enum GoalType {
 }
 
 const ATLAS_TILE_SIZE := 100
-const CANDY_NAMES: Array[String] = ["red", "blue", "orange", "green", "purple"]
-const CANDY_ATLAS_COLUMNS: Array[int] = [2, 1, 0, 3, 4]
+const CANDY_NAMES: Array[String] = ["yellow", "blue", "red", "green", "purple"]
 const COLOR_BOMB_ATLAS_CELL := Vector2i(5, 0)
 
 static func candy_count() -> int:
@@ -40,15 +39,14 @@ static func has_atlas_region(color_id: int, special_type: int) -> bool:
 static func _atlas_cell_for(color_id: int, special_type: int) -> Vector2i:
 	if special_type == SpecialType.COLOR_BOMB:
 		return COLOR_BOMB_ATLAS_CELL
-	if color_id < 0 or color_id >= CANDY_ATLAS_COLUMNS.size():
+	if color_id < 0 or color_id >= CANDY_NAMES.size():
 		return Vector2i(-1, -1)
-	var column: int = CANDY_ATLAS_COLUMNS[color_id]
 	match special_type:
 		SpecialType.STRIPED_ROW:
-			return Vector2i(column, 1)
+			return Vector2i(color_id, 1)
 		SpecialType.STRIPED_COLUMN:
-			return Vector2i(column, 2)
+			return Vector2i(color_id, 2)
 		SpecialType.WRAPPED:
 			return Vector2i(2, 4)
 		_:
-			return Vector2i(column, 0)
+			return Vector2i(color_id, 0)
