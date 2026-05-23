@@ -554,7 +554,7 @@ func _goal_text() -> String:
 	match _goal_type:
 		Types.GoalType.CLEAR_COLOR:
 			return "%s %d/%d  |  Score %d/%d" % [
-				Types.label_for(_goal_color),
+				Types.candy_name_for(_goal_color),
 				_cleared_goal_color,
 				_goal_count,
 				score,

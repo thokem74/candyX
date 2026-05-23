@@ -9,7 +9,7 @@ static func level_for(index: int) -> Dictionary:
 static func _generated_level(index: int) -> Dictionary:
 	var level_number := index + 1
 	var tier := maxi(0, index)
-	var color_count := mini(5, 4 + floori(float(tier) / 3.0))
+	var color_count := mini(Types.candy_count(), 4 + floori(float(tier) / 3.0))
 	var colors: Array[int] = []
 	for color_id in color_count:
 		colors.append(color_id)
@@ -32,7 +32,7 @@ static func _generated_level(index: int) -> Dictionary:
 			data["goal_type"] = Types.GoalType.CLEAR_COLOR
 			data["goal_color"] = goal_color
 			data["goal_count"] = goal_count
-			data["description"] = "Clear %d %s pieces." % [goal_count, Types.label_for(goal_color)]
+			data["description"] = "Clear %d %s pieces." % [goal_count, Types.candy_name_for(goal_color)]
 		_:
 			var goal_count := mini(10, 3 + floori(float(tier) / 3.0))
 			data["goal_type"] = Types.GoalType.SPECIALS
