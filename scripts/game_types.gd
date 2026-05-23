@@ -17,36 +17,38 @@ enum GoalType {
 	SPECIALS,
 }
 
-const PIECE_COLORS: Array[Color] = [
-	Color("#ff5b7f"),
-	Color("#47c3ff"),
-	Color("#ffd447"),
-	Color("#64d66e"),
-	Color("#a778ff"),
-	Color("#ff9a3d"),
-]
+const ATLAS_TILE_SIZE := 100
+const CANDY_NAMES: Array[String] = ["red", "blue", "orange", "green", "purple"]
+const CANDY_ATLAS_COLUMNS: Array[int] = [2, 1, 0, 3, 4]
+const COLOR_BOMB_ATLAS_CELL := Vector2i(5, 0)
 
-const PIECE_LABELS: Array[String] = ["A", "B", "C", "D", "E", "F"]
+static func candy_count() -> int:
+	return CANDY_NAMES.size()
 
-static func color_for(color_id: int) -> Color:
-	if color_id < 0 or color_id >= PIECE_COLORS.size():
-		return Color.WHITE
-	return PIECE_COLORS[color_id]
+static func candy_name_for(color_id: int) -> String:
+	if color_id < 0 or color_id >= CANDY_NAMES.size():
+		return "unknown"
+	return CANDY_NAMES[color_id]
 
-static func label_for(color_id: int) -> String:
-	if color_id < 0 or color_id >= PIECE_LABELS.size():
-		return "?"
-	return PIECE_LABELS[color_id]
+static func atlas_rect_for(color_id: int, special_type: int) -> Rect2:
+	var cell := _atlas_cell_for(color_id, special_type)
+	return Rect2(cell.x * ATLAS_TILE_SIZE, cell.y * ATLAS_TILE_SIZE, ATLAS_TILE_SIZE, ATLAS_TILE_SIZE)
 
-static func special_label(special_type: int) -> String:
+static func has_atlas_region(color_id: int, special_type: int) -> bool:
+	return _atlas_cell_for(color_id, special_type) != Vector2i(-1, -1)
+
+static func _atlas_cell_for(color_id: int, special_type: int) -> Vector2i:
+	if special_type == SpecialType.COLOR_BOMB:
+		return COLOR_BOMB_ATLAS_CELL
+	if color_id < 0 or color_id >= CANDY_ATLAS_COLUMNS.size():
+		return Vector2i(-1, -1)
+	var column: int = CANDY_ATLAS_COLUMNS[color_id]
 	match special_type:
 		SpecialType.STRIPED_ROW:
-			return "H"
+			return Vector2i(column, 1)
 		SpecialType.STRIPED_COLUMN:
-			return "V"
+			return Vector2i(column, 2)
 		SpecialType.WRAPPED:
-			return "W"
-		SpecialType.COLOR_BOMB:
-			return "*"
+			return Vector2i(2, 4)
 		_:
-			return ""
+			return Vector2i(column, 0)
