@@ -65,9 +65,6 @@ func start_level(new_level_data: Dictionary) -> void:
 	input_locked = false
 	_emit_state()
 
-func restart_level() -> void:
-	start_level(level_data)
-
 func _gui_input(event: InputEvent) -> void:
 	if input_locked or game_over:
 		return

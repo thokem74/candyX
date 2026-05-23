@@ -1,7 +1,6 @@
 extends RefCounted
 class_name GameTypes
 
-const BOARD_SIZE := 8
 const INVALID_CELL := Vector2i(-1, -1)
 
 enum SpecialType {
@@ -51,16 +50,3 @@ static func special_label(special_type: int) -> String:
 			return "*"
 		_:
 			return ""
-
-static func special_name(special_type: int) -> String:
-	match special_type:
-		SpecialType.STRIPED_ROW:
-			return "row striped"
-		SpecialType.STRIPED_COLUMN:
-			return "column striped"
-		SpecialType.WRAPPED:
-			return "wrapped"
-		SpecialType.COLOR_BOMB:
-			return "color bomb"
-		_:
-			return "normal"
